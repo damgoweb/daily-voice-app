@@ -56,7 +56,7 @@ async function getWeatherInfo(regionCode: string): Promise<NextResponse> {
 
     const response = await fetch(apiUrl, {
       headers: {
-        'User-Agent': 'YomuBiyori/1.0 (https://github.com/damgoweb/daily-voice-app)',
+        'User-Agent': 'OndokuBiyori/1.0 (https://github.com/damgoweb/daily-voice-app)',
       },
     });
 

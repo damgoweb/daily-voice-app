@@ -5,9 +5,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "よむ日和 - 毎日の朗読習慣",
-  description: "毎日新鮮な情報を朗読して、脳を活性化しましょう",
-  keywords: ["朗読", "ボケ防止", "認知機能", "習慣化"],
+  title: "音読日和 - 毎日　声を出して読む",
+  description: "毎日新鮮な情報を音読して、脳を活性化しましょう",
+  keywords: ["音読", "ボケ防止", "認知機能", "習慣化"],
 };
 
 export default function RootLayout({

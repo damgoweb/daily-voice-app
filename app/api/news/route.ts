@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     
     const response = await fetch(rssUrl, {
       headers: {
-        'User-Agent': 'YomuBiyori/1.0 (https://github.com/damgoweb/daily-voice-app)',
+        'User-Agent': 'OndokuBiyori/1.0 (https://github.com/damgoweb/daily-voice-app)',
       },
     });
 

@@ -80,8 +80,8 @@ export default function Home() {
       <div className="max-w-4xl mx-auto p-6 pb-24">
         {/* ヘッダー */}
         <header className="text-center mb-8 relative">
-          <h1 className="text-4xl font-bold mb-2">よむ日和</h1>
-          <p className="text-sm opacity-70">毎日の朗読習慣</p>
+          <h1 className="text-4xl font-bold mb-2">音読日和</h1>
+          <p className="text-sm opacity-70">毎日一回、声を出して読む</p>
           
           {/* 設定ボタン */}
           <button
