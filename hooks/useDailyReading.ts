@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { DailyReading } from '@/lib/types';
 import { getTodayString } from '@/lib/utils';
+import { getCachedReading, cacheReading } from '@/lib/db';
 
 interface UseDailyReadingReturn {
   data: DailyReading | null;
@@ -9,9 +10,6 @@ interface UseDailyReadingReturn {
   refresh: () => Promise<void>;
 }
 
-/**
- * 毎日の朗読データを取得するカスタムフック
- */
 export function useDailyReading(date?: string): UseDailyReadingReturn {
   const [data, setData] = useState<DailyReading | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -24,6 +22,18 @@ export function useDailyReading(date?: string): UseDailyReadingReturn {
       setLoading(true);
       setError(null);
 
+      // キャッシュをチェック（強制更新でない場合）
+      if (!force) {
+        const cached = await getCachedReading(targetDate);
+        if (cached) {
+          console.log('Using cached data for', targetDate);
+          setData(cached.data);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // APIから取得
       const params = new URLSearchParams({
         date: targetDate,
       });
@@ -42,6 +52,9 @@ export function useDailyReading(date?: string): UseDailyReadingReturn {
       const result = await response.json();
       setData(result);
 
+      // キャッシュに保存
+      await cacheReading(targetDate, result);
+
     } catch (err) {
       console.error('Failed to fetch daily reading:', err);
       setError(err instanceof Error ? err.message : '不明なエラーが発生しました');
@@ -51,12 +64,10 @@ export function useDailyReading(date?: string): UseDailyReadingReturn {
     }
   }, [targetDate]);
 
-  // 初回データ取得
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // 強制更新関数
   const refresh = useCallback(async () => {
     await fetchData(true);
   }, [fetchData]);
