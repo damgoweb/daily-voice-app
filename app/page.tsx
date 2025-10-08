@@ -8,13 +8,17 @@ import { ReadingDisplay } from '@/components/ReadingDisplay';
 import { StatsCards } from '@/components/StatsCards';
 import { ActionButtons } from '@/components/ActionButtons';
 import { SettingsPanel } from '@/components/SettingsPanel';
+import { CalendarView } from '@/components/CalendarView';
 import { getTodayString } from '@/lib/utils';
+
+type View = 'home' | 'calendar';
 
 export default function Home() {
   const { data, loading, error, refresh } = useDailyReading();
   const { history, streak, addRecord, hasReadToday } = useReadingHistory();
   const { settings, updateSettings } = useSettings();
   const [showSettings, setShowSettings] = useState(false);
+  const [currentView, setCurrentView] = useState<View>('home');
 
   // ローディング状態
   if (loading) {
@@ -81,7 +85,7 @@ export default function Home() {
         {/* ヘッダー */}
         <header className="text-center mb-8 relative">
           <h1 className="text-4xl font-bold mb-2">音読日和</h1>
-          <p className="text-sm opacity-70">毎日一回、声を出して読む</p>
+          <p className="text-sm opacity-70">毎日の朗読習慣</p>
           
           {/* 設定ボタン */}
           <button
@@ -95,58 +99,111 @@ export default function Home() {
             </svg>
           </button>
 
-          <div className="mt-4 flex items-center justify-center gap-4 text-sm">
-            <div>
-              <span className="font-bold text-2xl text-blue-500">{streak}</span>
-              <span className="ml-1">日連続</span>
+          {currentView === 'home' && (
+            <div className="mt-4 flex items-center justify-center gap-4 text-sm">
+              <div>
+                <span className="font-bold text-2xl text-blue-500">{streak}</span>
+                <span className="ml-1">日連続</span>
+              </div>
+              <div className="text-xs opacity-60">
+                {getTodayString()}
+              </div>
             </div>
-            <div className="text-xs opacity-60">
-              {getTodayString()}
-            </div>
-          </div>
+          )}
         </header>
 
-        {/* 統計カード */}
-        <div className="mb-6">
-          <StatsCards
-            totalCharCount={data.totalCharCount}
-            sectionCount={data.sections.length}
-            historyCount={history.length}
-            darkMode={settings.darkMode}
-          />
-        </div>
+        {/* コンテンツ */}
+        {currentView === 'home' ? (
+          <>
+            {/* 統計カード */}
+            <div className="mb-6">
+              <StatsCards
+                totalCharCount={data.totalCharCount}
+                sectionCount={data.sections.length}
+                historyCount={history.length}
+                darkMode={settings.darkMode}
+              />
+            </div>
 
-        {/* 朗読コンテンツ */}
-        <div className="mb-6">
-          <ReadingDisplay
-            sections={data.sections}
-            totalCharCount={data.totalCharCount}
-            fontSize={settings.fontSize}
-            darkMode={settings.darkMode}
-          />
-        </div>
+            {/* 朗読コンテンツ */}
+            <div className="mb-6">
+              <ReadingDisplay
+                sections={data.sections}
+                totalCharCount={data.totalCharCount}  // ← この行を追加
+                fontSize={settings.fontSize}
+                darkMode={settings.darkMode}
+              />
+            </div>
 
-        {/* アクションボタン */}
-        <ActionButtons
-          onRefresh={refresh}
-          onMarkAsRead={handleMarkAsRead}
-          hasReadToday={hasReadToday}
-          loading={loading}
-        />
+            {/* アクションボタン */}
+            <ActionButtons
+              onRefresh={refresh}
+              onMarkAsRead={handleMarkAsRead}
+              hasReadToday={hasReadToday}
+              loading={loading}
+            />
 
-        {/* デバッグ情報 */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-8 p-4 bg-yellow-100 rounded text-xs">
-            <div>Cached: {data.cached ? 'Yes' : 'No'}</div>
-            <div>Timestamp: {data.timestamp}</div>
-            {data.errors && (
-              <div className="mt-2 text-red-600">
-                Errors: {JSON.stringify(data.errors)}
+            {/* デバッグ情報 */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-8 p-4 bg-yellow-100 rounded text-xs">
+                <div>Cached: {data.cached ? 'Yes' : 'No'}</div>
+                <div>Timestamp: {data.timestamp}</div>
+                {data.errors && (
+                  <div className="mt-2 text-red-600">
+                    Errors: {JSON.stringify(data.errors)}
+                  </div>
+                )}
               </div>
             )}
-          </div>
+          </>
+        ) : (
+          <CalendarView
+            history={history}
+            darkMode={settings.darkMode}
+            onDateSelect={(date) => {
+              console.log('Selected date:', date);
+            }}
+          />
         )}
       </div>
+
+      {/* ナビゲーションバー */}
+      <nav className={`fixed bottom-0 left-0 right-0 ${settings.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-t shadow-lg`}>
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => setCurrentView('home')}
+              className={`flex flex-col items-center gap-1 py-2 rounded-lg transition-colors ${
+                currentView === 'home'
+                  ? 'bg-blue-500 text-white'
+                  : settings.darkMode
+                  ? 'hover:bg-gray-700'
+                  : 'hover:bg-gray-100'
+              }`}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              <span className="text-xs">ホーム</span>
+            </button>
+            <button
+              onClick={() => setCurrentView('calendar')}
+              className={`flex flex-col items-center gap-1 py-2 rounded-lg transition-colors ${
+                currentView === 'calendar'
+                  ? 'bg-blue-500 text-white'
+                  : settings.darkMode
+                  ? 'hover:bg-gray-700'
+                  : 'hover:bg-gray-100'
+              }`}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="text-xs">カレンダー</span>
+            </button>
+          </div>
+        </div>
+      </nav>
 
       {/* 設定パネル */}
       {showSettings && (
