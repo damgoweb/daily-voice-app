@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDailyReading } from '@/hooks/useDailyReading';
 import { useReadingHistory } from '@/hooks/useReadingHistory';
 import { useSettings } from '@/hooks/useSettings';
@@ -20,7 +20,20 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [currentView, setCurrentView] = useState<View>('home');
 
-  // ローディング状態
+  // Service Worker登録
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered:', registration);
+        })
+        .catch((error) => {
+          console.log('Service Worker registration failed:', error);
+        });
+    }
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
@@ -32,7 +45,6 @@ export default function Home() {
     );
   }
 
-  // エラー状態
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-6">
@@ -53,7 +65,6 @@ export default function Home() {
     );
   }
 
-  // データなし状態
   if (!data) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
@@ -64,7 +75,6 @@ export default function Home() {
     );
   }
 
-  // 「読んだ」ボタンのハンドラ
   const handleMarkAsRead = async () => {
     try {
       await addRecord(
@@ -82,12 +92,10 @@ export default function Home() {
   return (
     <div className={`min-h-screen ${settings.darkMode ? 'bg-gray-900 text-white' : 'bg-gradient-to-br from-blue-50 to-purple-50 text-gray-900'}`}>
       <div className="max-w-4xl mx-auto p-6 pb-24">
-        {/* ヘッダー */}
         <header className="text-center mb-8 relative">
           <h1 className="text-4xl font-bold mb-2">音読日和</h1>
           <p className="text-sm opacity-70">毎日の朗読習慣</p>
           
-          {/* 設定ボタン */}
           <button
             onClick={() => setShowSettings(true)}
             className="absolute top-0 right-0 w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -112,10 +120,8 @@ export default function Home() {
           )}
         </header>
 
-        {/* コンテンツ */}
         {currentView === 'home' ? (
           <>
-            {/* 統計カード */}
             <div className="mb-6">
               <StatsCards
                 totalCharCount={data.totalCharCount}
@@ -125,17 +131,15 @@ export default function Home() {
               />
             </div>
 
-            {/* 朗読コンテンツ */}
             <div className="mb-6">
               <ReadingDisplay
                 sections={data.sections}
-                totalCharCount={data.totalCharCount}  // ← この行を追加
+                totalCharCount={data.totalCharCount}
                 fontSize={settings.fontSize}
                 darkMode={settings.darkMode}
               />
             </div>
 
-            {/* アクションボタン */}
             <ActionButtons
               onRefresh={refresh}
               onMarkAsRead={handleMarkAsRead}
@@ -143,7 +147,6 @@ export default function Home() {
               loading={loading}
             />
 
-            {/* デバッグ情報 */}
             {process.env.NODE_ENV === 'development' && (
               <div className="mt-8 p-4 bg-yellow-100 rounded text-xs">
                 <div>Cached: {data.cached ? 'Yes' : 'No'}</div>
@@ -167,7 +170,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* ナビゲーションバー */}
       <nav className={`fixed bottom-0 left-0 right-0 ${settings.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-t shadow-lg`}>
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="grid grid-cols-2 gap-4">
@@ -205,7 +207,6 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* 設定パネル */}
       {showSettings && (
         <SettingsPanel
           settings={settings}
