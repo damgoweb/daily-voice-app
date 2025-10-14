@@ -22,7 +22,7 @@ export function WikipediaSection({
           className="border-l-4 border-blue-500 pl-4"
         >
           {item.year && (
-            <div className="text-sm font-bold text-blue-600 mb-1">
+            <div className="text-lg font-bold text-blue-600 mb-1">
               {item.year}年
             </div>
           )}
